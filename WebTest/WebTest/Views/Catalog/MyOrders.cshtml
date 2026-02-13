@@ -1,0 +1,78 @@
+@model WebTest.ViewModels.Order.OrderListViewModel
+@using WebTest.Models
+@{
+    ViewData["Title"] = "Мои заказы";
+    var statusFilter = Model.StatusFilter;
+}
+
+<h2>Мои заказы</h2>
+
+<form method="get" class="mb-3">
+    <label>Фильтр по статусу:</label>
+    <select name="status" class="form-select" style="max-width:200px;display:inline-block;">
+        <option value="">Все</option>
+        @foreach (var st in OrderStatuses.All)
+        {
+            @if (statusFilter == st)
+            {
+                <option value="@st" selected>@st</option>
+            }
+            else
+            {
+                <option value="@st">@st</option>
+            }
+        }
+    </select>
+    <button type="submit" class="btn btn-sm btn-primary">Фильтровать</button>
+</form>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Номер заказа</th>
+        <th>Создан</th>
+        <th>Доставка</th>
+        <th>Статус</th>
+        <th>Состав</th>
+        <th>Сумма</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var o in Model.Orders)
+    {
+        <tr>
+            <td>@o.OrderNumber</td>
+            <td>@o.OrderDate</td>
+            <td>@o.ShipmentDate</td>
+            <td>@o.Status</td>
+            <td>
+                @if (o.Items != null)
+                {
+                    <ul>
+                        @foreach (var it in o.Items)
+                        {
+                            <li>@it.ProductName x @it.Quantity (@it.Price)</li>
+                        }
+                    </ul>
+                }
+            </td>
+            <td>@o.Total</td>
+            <td>
+                @if (o.Status != OrderStatuses.InProgress)
+                {
+                    <form asp-action="DeleteOrder" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@o.Id" />
+                        @if (!string.IsNullOrEmpty(statusFilter))
+                        {
+                            <input type="hidden" name="status" value="@statusFilter" />
+                        }
+                        <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+

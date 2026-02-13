@@ -1,0 +1,36 @@
+@model WebTest.ViewModels.Product.ProductListViewModel
+@{
+    ViewData["Title"] = "Каталог";
+}
+
+<h2>Каталог товаров</h2>
+
+<table class="table table-striped">
+    <thead>
+    <tr>
+        <th>Название</th>
+        <th>Описание</th>
+        <th>Цена</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model.Products)
+    {
+        <tr>
+            <td>@p.Name</td>
+            <td>@p.Category</td>
+            <td>@p.Price</td>
+            <td>
+                <form asp-action="AddToCart" method="post" class="d-inline">
+                    <input type="hidden" name="productId" value="@p.Id" />
+                    <button type="submit" class="btn btn-sm btn-success">В корзину</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+
+<a asp-action="Cart" class="btn btn-primary">Перейти в корзину</a>
+

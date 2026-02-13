@@ -1,0 +1,245 @@
+@model WebTest.ViewModels.Manager.ManagerIndexViewModel
+@using WebTest.Models
+@{
+    ViewData["Title"] = "Панель менеджера";
+}
+
+<h2>Панель менеджера</h2>
+
+<h3>Товары</h3>
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Название</th>
+        <th>Описание</th>
+        <th>Цена</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var p in Model.Products)
+    {
+        <tr data-product-id="@p.Id">
+            <td class="prod-id">@p.Id</td>
+            <td class="prod-name">@p.Name</td>
+            <td class="prod-desc">@p.Category</td>
+            <td class="prod-price">@p.Price</td>
+            <td>
+                <button type="button" class="btn btn-sm btn-primary js-edit-product" data-id="@p.Id">
+                    Редактировать (AJAX)
+                </button>
+                <form asp-action="DeleteProduct" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@p.Id" />
+                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td colspan="5">
+            <form asp-action="CreateProduct" method="post" class="d-flex gap-2">
+                <input name="name" placeholder="Название" class="form-control" />
+                <input name="description" placeholder="Категория" class="form-control" />
+                <input name="price" placeholder="Цена" class="form-control" />
+                <button type="submit" class="btn btn-success">Добавить</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<!-- Модальное окно редактирования товара -->
+<div class="modal fade" id="editProductModal" tabindex="-1" aria-labelledby="editProductLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editProductLabel">Редактирование товара</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="editProductId" />
+                <div class="mb-3">
+                    <label class="form-label">Название</label>
+                    <input type="text" id="editProductName" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Описание</label>
+                    <input type="text" id="editProductDesc" class="form-control" />
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Цена</label>
+                    <input type="number" step="0.01" id="editProductPrice" class="form-control" />
+                </div>
+                <div id="editProductMessage" class="text-danger"></div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Отмена</button>
+                <button type="button" class="btn btn-primary" id="btnSaveProduct">ОК</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Пользователи</h3>
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Логин</th>
+        <th>Пароль</th>
+        <th>Роль</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var u in Model.Users)
+    {
+        <tr>
+            <td>@u.Id</td>
+            <td>
+                <input form="editUser-@u.Id" name="userName" value="@u.UserName" />
+            </td>
+            <td>
+                <input form="editUser-@u.Id" name="password" type="password" />
+            </td>
+            <td>
+                <select form="editUser-@u.Id" name="role">
+                    @foreach (var r in Enum.GetValues<UserRole>())
+                    {
+                        <option value="@r" selected="@(u.Role == r ? "selected" : null)">@r</option>
+                    }
+                </select>
+            </td>
+            <td>
+                <form id="editUser-@u.Id" asp-action="EditUser" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@u.Id" />
+                    <button type="submit" class="btn btn-sm btn-primary">Сохранить</button>
+                </form>
+                <form asp-action="DeleteUser" method="post" class="d-inline">
+                    <input type="hidden" name="id" value="@u.Id" />
+                    <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
+                </form>
+            </td>
+        </tr>
+    }
+    <tr>
+        <td colspan="5">
+            <form asp-action="CreateUser" method="post" class="d-flex gap-2">
+                <input name="userName" placeholder="Логин" class="form-control" />
+                <input name="password" placeholder="Пароль" class="form-control" />
+                <select name="role" class="form-select">
+                    @foreach (var r in Enum.GetValues<UserRole>())
+                    {
+                        <option value="@r">@r</option>
+                    }
+                </select>
+                <button type="submit" class="btn btn-success">Добавить</button>
+            </form>
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+@section Scripts {
+    <script>
+        $(function () {
+            var modalEl = document.getElementById('editProductModal');
+            var modal = new bootstrap.Modal(modalEl);
+
+            $('.js-edit-product').on('click', function () {
+                var id = $(this).data('id');
+                $('#editProductMessage').text('');
+
+                $.get('@Url.Action("GetProduct", "Manager")', { id: id })
+                    .done(function (data) {
+                        $('#editProductId').val(data.id);
+                        $('#editProductName').val(data.name);
+                        $('#editProductDesc').val(data.description);
+                        $('#editProductPrice').val(data.price);
+                        modal.show();
+                    })
+                    .fail(function () {
+                        alert('Ошибка загрузки товара');
+                    });
+            });
+
+            $('#btnSaveProduct').on('click', function () {
+                var dto = {
+                    id: $('#editProductId').val(),
+                    name: $('#editProductName').val(),
+                    description: $('#editProductDesc').val(),
+                    price: parseFloat($('#editProductPrice').val())
+                };
+
+                $.ajax({
+                    url: '@Url.Action("SaveProduct", "Manager")',
+                    method: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(dto)
+                }).done(function (res) {
+                    if (res.success) {
+                        var row = $('tr[data-product-id="' + res.product.id + '"]');
+                        row.find('.prod-name').text(res.product.name);
+                        row.find('.prod-desc').text(res.product.description);
+                        row.find('.prod-price').text(res.product.price);
+                        modal.hide();
+                        alert(res.message);
+                    } else {
+                        $('#editProductMessage').text(res.message || 'Ошибка сохранения');
+                    }
+                }).fail(function (xhr) {
+                    var msg = 'Ошибка сохранения';
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        msg = xhr.responseJSON.message;
+                    }
+                    $('#editProductMessage').text(msg);
+                });
+            });
+        });
+    </script>
+}
+
+<h3>Заказы</h3>
+<table class="table table-sm table-striped">
+    <thead>
+    <tr>
+        <th>ID</th>
+        <th>Клиент</th>
+        <th>Создан</th>
+        <th>Доставка</th>
+        <th>Статус</th>
+        <th></th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var o in Model.Orders)
+    {
+        <tr>
+            <td>@o.Id</td>
+            <td>@o.CustomerName</td>
+            <td>@o.OrderDate</td>
+            <td>@o.ShipmentDate</td>
+            <td>@o.Status</td>
+            <td>
+                @if (o.Status == OrderStatuses.New)
+                {
+                    <form asp-action="SetInProgress" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@o.Id" />
+                        <input type="date" name="deliveryDate" />
+                        <button type="submit" class="btn btn-sm btn-warning">Выполняется</button>
+                    </form>
+                }
+                @if (o.Status == OrderStatuses.InProgress)
+                {
+                    <form asp-action="SetCompleted" method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@o.Id" />
+                        <button type="submit" class="btn btn-sm btn-success">Выполнен</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+

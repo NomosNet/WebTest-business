@@ -1,0 +1,46 @@
+@model WebTest.ViewModels.Cart.CartViewModel
+@{
+    ViewData["Title"] = "Корзина";
+}
+
+<h2>Корзина</h2>
+
+@if (!Model.Items.Any())
+{
+    <p>Корзина пуста.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+        <tr>
+            <th>Товар</th>
+            <th>Кол-во</th>
+            <th>Цена</th>
+            <th>Сумма</th>
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model.Items)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price</td>
+                <td>@item.Subtotal</td>
+            </tr>
+        }
+        <tr>
+            <td colspan="3" class="text-end"><strong>Итого</strong></td>
+            <td><strong>@Model.Total</strong></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <form asp-action="CreateOrder" method="post">
+        <button type="submit" class="btn btn-success">Оформить заказ</button>
+    </form>
+}
+
+<a asp-action="Index" class="btn btn-link">Вернуться в каталог</a>
+

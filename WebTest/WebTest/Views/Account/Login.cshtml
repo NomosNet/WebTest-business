@@ -1,0 +1,29 @@
+@{
+    ViewData["Title"] = "Вход";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+
+<h2>Вход</h2>
+
+@if (ViewBag.Error != null)
+{
+    <div class="alert alert-danger">@ViewBag.Error</div>
+}
+
+<form asp-action="Login" method="post">
+    <input type="hidden" name="returnUrl" value="@returnUrl" />
+    <div class="mb-3">
+        <label class="form-label">Логин</label>
+        <input class="form-control" type="text" name="userName" />
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Пароль</label>
+        <input class="form-control" type="password" name="password" />
+    </div>
+    <button type="submit" class="btn btn-primary">Войти</button>
+</form>
+
+<p class="mt-3">
+    Тестовые пользователи: менеджер <code>manager/manager</code>, заказчик <code>customer/customer</code>.
+</p>
+
